@@ -1,21 +1,14 @@
 import requests
 
 
-def getTransactions():
+def getTransactions(address, count):
     params = {
-        'perPage': '2000',
-        'currentPage': '1',
-        'types[0]': 'sale',
-        'types[1]': 'transfer',
+        'limit': f'{count}'
     }
 
     response = requests.get(
-        'https://ton.diamonds/api/v1/collections/annihilation/transactions',
+        'https://tonapi.io/v1/blockchain/getTransactions?account=' + address,
         params=params,
     )
 
-    return response.json()['data']['rows']
-
-
-if __name__ == '__main__':
-    print(len(getTransactions()))
+    return response.json()['transactions']
