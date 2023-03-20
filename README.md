@@ -1,4 +1,4 @@
-# Blockchain Movements Visualizer for NFT Collections
+# Blockchain Movements Visualizer for NFT Collections (Draft)
 
 ```
 pip3 install pyvis
