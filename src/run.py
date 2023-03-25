@@ -46,12 +46,9 @@ def create_graph(transactions_data, addresses):
         print(f'{i}/{len(addresses)}')
 
     for i, (transaction, amount) in enumerate(transactions_data.items()):
-        addressFrom, addressTo, transactionType = ast.literal_eval(transaction)
-        if transactionType == 'sale':
-            G.add_edge(addressFrom, addressTo, value=amount,
-                    color='red', title=amount)
-        elif transactionType == 'transfer':
-            G.add_edge(addressFrom, addressTo, value=amount,
+        address_from, address_to, transaction_type = ast.literal_eval(transaction)
+        if transaction_type == 'transfer':
+            G.add_edge(address_from, address_to, value=amount,
                     color='green', title=amount)
         print(f'{i}/{len(transactions_data)}')
 
