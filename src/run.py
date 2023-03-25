@@ -1,89 +1,97 @@
 from pyvis.network import Network
 import ast
-from api import getTransactions
+from api import get_transactions, get_balance
 import datetime
 
 
-def processRawTransactions(rawTransactions):
-    nftAmountData = {}
-    transactionsData = {}
+def process_transactions(transactions):
+    transactions_data = {}
 
-    for rawTransaction in rawTransactions:
-        addressFrom = rawTransaction['from']
-        addressTo = rawTransaction['to']
+    for transaction in transactions:
+        address_from = transaction['in_msg']['source']
+        address_to = transaction['in_msg']['destination']
 
-        usernameFrom = '' if not (
-            'fromUser' in rawTransaction and 'username' in rawTransaction['fromUser']
-        ) else rawTransaction['fromUser']['username']
+        transaction_type = 'transfer'
+        amount = int(transaction['in_msg']['value'])
 
-        usernameTo = '' if not (
-            'toUser' in rawTransaction and 'username' in rawTransaction['toUser']
-        ) else rawTransaction['toUser']['username']
-
-        transactionType = rawTransaction['transactionType']
-
-        nftAmountData[addressTo] = 1 if addressTo not in nftAmountData \
-            else nftAmountData[addressTo] + 1
-
-        nftAmountData[addressFrom] = -1 if addressFrom not in nftAmountData \
-            else nftAmountData[addressFrom] - 1
-
-        transactionData = [
-            (addressFrom, usernameFrom),
-            (addressTo, usernameTo),
-            transactionType
+        transaction_data = [
+            address_from,
+            address_to,
+            transaction_type
         ]
 
-        transactionsData[str(transactionData)] = 1 if str(transactionData) not in transactionsData \
-            else transactionsData[str(transactionData)] + 1
-    return transactionsData, nftAmountData
+        if str(transaction_data) not in transactions_data:
+            transactions_data[str(transaction_data)] = amount
+        else:
+            transactions_data[str(transaction_data)] += amount
+
+    return transactions_data, {}
 
 
-def createGraph(transactionsData, nftAmountData):
+def create_graph(transactions_data, addresses):
     G = Network(height="750px", width="100%", bgcolor="#222222",
                 font_color="white", directed=True)
 
-    for transaction, amount in transactionsData.items():
-        (addressFrom, usernameFrom), (addressTo,
-                                      usernameTo), transactionType = ast.literal_eval(transaction)
+    for i, address in enumerate(addresses):
+        balance = get_balance(address)
 
-        amountFrom = nftAmountData[addressFrom]
-        amountTo = nftAmountData[addressTo]
+        label = f'({balance}) ' + address[:3] + '...' + address[-3:]
+        if address == start:
+            color = '#8800CC'
+        else:
+            color = '#0088CC'
 
-        fromLabel = f'[{amountFrom}] ' + usernameFrom\
-            if usernameFrom \
-            else f'({amountFrom}) ' + addressFrom[:3] + '...' + addressFrom[-3:]
+        G.add_node(address, label=label, title=address,
+                   value=get_balance(address), color=color)
+        print(f'{i}/{len(addresses)}')
 
-        toLabel = f'[{amountTo}] ' + usernameTo \
-            if usernameTo \
-            else f'({amountTo}) ' + \
-            addressTo[:3] + '...' + addressTo[-3:]
-
-        fromColor = '#0088CC' if amountFrom else '#8C8C8C'
-        toColor = '#0088CC' if amountTo else '#8C8C8C'
-
-        G.add_node(addressFrom, label=fromLabel, title=addressFrom,
-                   value=amountFrom, color=fromColor)
-        G.add_node(addressTo, label=toLabel, title=addressTo,
-                   value=amountTo, color=toColor)
-
+    for i, (transaction, amount) in enumerate(transactions_data.items()):
+        addressFrom, addressTo, transactionType = ast.literal_eval(transaction)
         if transactionType == 'sale':
             G.add_edge(addressFrom, addressTo, value=amount,
-                       color='red', title=amount)
+                    color='red', title=amount)
         elif transactionType == 'transfer':
             G.add_edge(addressFrom, addressTo, value=amount,
-                       color='green', title=amount)
+                    color='green', title=amount)
+        print(f'{i}/{len(transactions_data)}')
 
     return G
 
+def sum_dictionaries(dict_1: dict, dict_2: dict):
+    result = dict_1
+    for key in dict_2.keys():
+        if key not in result:
+            result[key] = dict_2[key]
+        else:
+            result[key] += result[key]
+            
+    return result
+
 
 if __name__ == '__main__':
-    rawTransactions = getTransactions()
-    transactionsData, nftAmountData = processRawTransactions(rawTransactions)
-
-    G = createGraph(transactionsData, nftAmountData)
+    start = input('Enter address: ')
+    addresses = [start]
+    ready = []
+    full_transactions_data = {}
+    for i in range(int(input('Amount of steps: '))):
+        new = []
+        for i, address in enumerate(addresses):
+            print(f'{i + 1}/{len(addresses)}')
+            if address not in ready:
+                raw_transactions = get_transactions(address)
+                transactions_data, nftAmountData = process_transactions(raw_transactions)
+                for transaction in transactions_data:
+                    transaction = eval(transaction)
+                    new = new + [transaction[0], transaction[1]]
+                full_transactions_data = sum_dictionaries(full_transactions_data, transactions_data)
+                ready.append(address)
+        
+        addresses = list(set(new))
+    print('Visualizing..')
+    G = create_graph(full_transactions_data, addresses)
 
     direcroty = './html/'
     fileName = 'graph_' + datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + '.html'
 
     G.show(direcroty + fileName)
+    print('Ready.')
