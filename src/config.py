@@ -1,7 +1,7 @@
-import os
 
 
-DEPTH = 100
+DEPTH = 2
+TX_LIMIT = 500
 
 
 class ApiConfig:
@@ -16,8 +16,8 @@ class ApiConfig:
         self.delay = delay
 
 
-everspaceCenterConfig = ApiConfig(
-    api_key=os.getenv('EVERSPACE_CENTER_API_KEY'),
+EVERSPACE_CENTER_CONFIG = ApiConfig(
+    api_key="b17a652df5d642a6aa6e9dae4601685a",
     timeout=10,
     retries=3,
     delay=1,
