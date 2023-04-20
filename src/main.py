@@ -1,11 +1,12 @@
 import json
 import asyncio
+import os
+from tqdm import tqdm
 from typing import List, Dict, Tuple
 from pyvis.network import Network
 from config import EVERSPACE_CENTER_CONFIG, TX_LIMIT, DEPTH
 from api.everspace_center_api import EverspaceCenterApi
 import logging
-from tqdm import tqdm
 
 SUSPICIUS_ADDRESSES = []
 
@@ -182,6 +183,9 @@ async def main():
     logging.info('Visualizing..')
     net = await create_graph(full_transactions_data, addresses, everspace_center_api, initial_address)
 
+    if not os.path.exists('./html'):
+        os.makedirs('./html')
+        
     directory = './html/'
     file_name = 'index.html'
 
