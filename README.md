@@ -1,9 +1,8 @@
 # Toncoin Movements Visualizer
 
 ```
-pip3 install pyvis
-pip3 install requests
-python3 src/run.py
+pip install -r requirements.txt
+python3 src/main.py
 ```
 
 ### Pull requests are welcome
