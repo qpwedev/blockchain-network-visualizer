@@ -8,7 +8,7 @@ from config import EVERSPACE_CENTER_CONFIG, TX_LIMIT, DEPTH
 from api.everspace_center_api import EverspaceCenterApi
 import logging
 
-SUSPICIUS_ADDRESSES = []
+SUSPICIOUS_ADDRESSES = []
 
 
 class Transaction:
@@ -112,7 +112,7 @@ async def create_graph(txs: Dict, addresses: List[str], everspaceCenterApi: Ever
         if initial_address == address:
             color = '#FF0000'
 
-        if address in SUSPICIUS_ADDRESSES:
+        if address in SUSPICIOUS_ADDRESSES:
             color = '#FF00FF'
 
         net.add_node(address, label=label, title=address,
@@ -141,7 +141,7 @@ async def process_address(address, everspace_center_api: EverspaceCenterApi, tx_
         )
 
         if len(raw_transactions) < 5:
-            SUSPICIUS_ADDRESSES.append(address)
+            SUSPICIOUS_ADDRESSES.append(address)
 
         txs = process_raw_txs(raw_transactions)
 
@@ -185,7 +185,7 @@ async def main():
 
     if not os.path.exists('./html'):
         os.makedirs('./html')
-        
+
     directory = './html/'
     file_name = 'index.html'
 
