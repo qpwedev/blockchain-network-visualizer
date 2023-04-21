@@ -28,7 +28,8 @@ def parse_raw_tx(tx):
         'id': tx['id'],
         'address_from': tx['in_message']['src'] if tx['in_message']['src'] else tx['in_message']['dst'],
         'address_to': tx['in_message']['dst'],
-        'value':  int(tx['out_messages'][0]['value']) if tx['out_messages'] else int(tx['in_message']['value']),
+        'value':  int(tx['out_messages'][0]['value']) if tx['out_messages'] and 'value' in tx['out_messages'][0]
+        else int(tx['in_message']['value']),
         'type': 'out' if tx['out_messages'] else 'in',
     }
 
