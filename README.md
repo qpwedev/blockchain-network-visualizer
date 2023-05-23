@@ -1,4 +1,4 @@
-# Toncoin Movements Visualizer
+# Blockchain Network Visualizer
 
 ```
 pip install -r requirements.txt
